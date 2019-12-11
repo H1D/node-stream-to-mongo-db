@@ -16,12 +16,12 @@ module.exports = {
     // those variables can't be initialized without Promises, so we wait first drain
     let client;
     let dbConnection;
-    let collection;
+    let bulk;
     let records = [];
 
     // this function is usefull to insert records and reset the records array
     const insert = async () => {
-      await collection.insertMany(records, config.insertOptions);
+      await bulk.execute();
       records = [];
     };
 
@@ -43,15 +43,24 @@ module.exports = {
             } else {
               client = await MongoClient.connect(config.dbURL, { useNewUrlParser: true });
               dbConnection = await client.db();
+              bulk = db.collection.initializeOrderedBulkOp()
             }
           }
-          if (!collection) collection = await dbConnection.collection(config.collection);
 
-          // add to batch records
-          records.push(record);
+          if (!bulk) {
+            const collection = await dbConnection.collection(config.collection);
+            bulk = collection.initializeOrderedBulkOp();
+          }
+
+          // add to bulk operations
+          if (record._id !== undefined) {
+            bulk.find({_id:record._id}).upsert().update({$set:record});
+          } else {
+            bulk.insert(record);
+          }
 
           // insert and reset batch recors
-          if (records.length >= config.batchSize) await insert();
+          if (bulk.length >= config.batchSize) await insert();
 
           // next stream
           next();
@@ -64,7 +73,7 @@ module.exports = {
 
     writable.on('finish', async () => {
       try {
-        if (records.length > 0) await insert();
+        if (bulk.length > 0) await insert();
         await close();
 
         writable.emit('close');
