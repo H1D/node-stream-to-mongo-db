@@ -2,7 +2,7 @@
   "name": "stream-to-mongo-db",
   "version": "1.6.0",
   "description": "Stream data directly to MongoDB",
-  "main": "src/index.js",
+  "main": "out/index.js",
   "scripts": {
     "build": "./node_modules/babel-cli/bin/babel.js -d out/ src/",
     "prepare": "./node_modules/babel-cli/bin/babel.js -d out/ src/",
