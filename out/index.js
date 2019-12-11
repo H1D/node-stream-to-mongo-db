@@ -45,7 +45,6 @@ module.exports = {
             } else {
               client = await _mongodb.MongoClient.connect(config.dbURL, { useNewUrlParser: true });
               dbConnection = await client.db();
-              bulk = db.collection.initializeOrderedBulkOp();
             }
           }
 
