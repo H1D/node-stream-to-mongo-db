@@ -48,7 +48,7 @@ module.exports = {
 
           if (!bulk) {
             const collection = await dbConnection.collection(config.collection);
-            bulk = collection.initializeOrderedBulkOp();
+            bulk = collection.initializeUnorderedBulkOp();
           }
 
           // add to bulk operations
